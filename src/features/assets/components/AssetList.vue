@@ -19,7 +19,7 @@
         >
           {{ item.nombre }}
         </button>
-        <div class="btn-group btn-group-sm">
+        <div v-if="canManage" class="btn-group btn-group-sm">
           <button type="button" class="btn btn-outline-light" @click.stop="$emit('edit', item)">Editar</button>
           <button
             type="button"
@@ -39,13 +39,17 @@
 <script setup lang="ts">
 type AssetListItem = { id: number; nombre: string; [key: string]: unknown }
 
-defineProps<{
-  items: AssetListItem[]
-  selectedId: number | null
-  loading: boolean
-  removing: boolean
-  emptyLabel: string
-}>()
+withDefaults(
+  defineProps<{
+    items: AssetListItem[]
+    selectedId: number | null
+    loading: boolean
+    removing: boolean
+    emptyLabel: string
+    canManage?: boolean
+  }>(),
+  { canManage: true },
+)
 
 defineEmits<{
   (e: 'select', item: any): void

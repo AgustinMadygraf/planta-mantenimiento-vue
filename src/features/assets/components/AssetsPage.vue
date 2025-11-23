@@ -26,30 +26,32 @@
               <span class="badge text-bg-secondary">{{ plantas.length }}</span>
             </div>
 
-            <AssetList
-              :items="plantas"
-              :selected-id="selectedPlanta?.id ?? null"
-              :loading="loading.plantas"
-              :removing="removing.planta"
-              empty-label="No hay plantas registradas aún."
-              @select="selectPlanta"
-              @edit="plantaForm.startEdit"
-              @delete="confirmDeletePlanta"
-            />
+              <AssetList
+                :items="plantas"
+                :selected-id="selectedPlanta?.id ?? null"
+                :loading="loading.plantas"
+                :removing="removing.planta"
+                :can-manage="canManageAssets"
+                empty-label="No hay plantas registradas aún."
+                @select="selectPlanta"
+                @edit="handleEditPlanta"
+                @delete="handleDeletePlanta"
+              />
 
-            <AssetForm
-              class="mt-3"
-              :mode="plantaForm.form.mode"
-              :nombre="plantaForm.form.nombre"
-              input-id="planta-nombre"
-              placeholder="Ej. Planta Principal"
-              create-label="Crear planta"
-              edit-label="Guardar cambios"
-              :saving="saving.planta"
-              @update:nombre="(value) => (plantaForm.form.nombre = value)"
-              @submit="submitPlanta"
-              @cancel="plantaForm.reset"
-            />
+              <AssetForm
+                class="mt-3"
+                :mode="plantaForm.form.mode"
+                :nombre="plantaForm.form.nombre"
+                input-id="planta-nombre"
+                placeholder="Ej. Planta Principal"
+                create-label="Crear planta"
+                edit-label="Guardar cambios"
+                :saving="saving.planta"
+                :disabled="!canManageAssets"
+                @update:nombre="(value) => (plantaForm.form.nombre = value)"
+                @submit="handleSubmitPlanta"
+                @cancel="plantaForm.reset"
+              />
           </div>
         </div>
       </div>
@@ -69,10 +71,11 @@
                 :selected-id="selectedArea?.id ?? null"
                 :loading="loading.areas"
                 :removing="removing.area"
+                :can-manage="canManageAssets"
                 empty-label="No hay áreas registradas para esta planta."
                 @select="selectArea"
-                @edit="areaForm.startEdit"
-                @delete="confirmDeleteArea"
+                @edit="handleEditArea"
+                @delete="handleDeleteArea"
               />
 
               <AssetForm
@@ -84,9 +87,9 @@
                 create-label="Crear área"
                 edit-label="Guardar cambios"
                 :saving="saving.area"
-                :disabled="!selectedPlanta"
+                :disabled="!canManageAssets || !selectedPlanta"
                 @update:nombre="(value) => (areaForm.form.nombre = value)"
-                @submit="submitArea"
+                @submit="handleSubmitArea"
                 @cancel="areaForm.reset"
               />
             </div>
@@ -109,10 +112,11 @@
                 :selected-id="selectedEquipo?.id ?? null"
                 :loading="loading.equipos"
                 :removing="removing.equipo"
+                :can-manage="canManageAssets"
                 empty-label="No hay equipos registrados para esta área."
                 @select="selectEquipo"
-                @edit="equipoForm.startEdit"
-                @delete="confirmDeleteEquipo"
+                @edit="handleEditEquipo"
+                @delete="handleDeleteEquipo"
               />
 
               <AssetForm
@@ -124,9 +128,9 @@
                 create-label="Crear equipo"
                 edit-label="Guardar cambios"
                 :saving="saving.equipo"
-                :disabled="!selectedArea"
+                :disabled="!canManageAssets || !selectedArea"
                 @update:nombre="(value) => (equipoForm.form.nombre = value)"
-                @submit="submitEquipo"
+                @submit="handleSubmitEquipo"
                 @cancel="equipoForm.reset"
               />
             </div>
@@ -149,10 +153,11 @@
                 :selected-id="selectedSistema?.id ?? null"
                 :loading="loading.sistemas"
                 :removing="removing.sistema"
+                :can-manage="canManageAssets"
                 empty-label="No hay sistemas registrados para este equipo."
                 @select="selectSistema"
-                @edit="sistemaForm.startEdit"
-                @delete="confirmDeleteSistema"
+                @edit="handleEditSistema"
+                @delete="handleDeleteSistema"
               />
 
               <AssetForm
@@ -164,9 +169,9 @@
                 create-label="Crear sistema"
                 edit-label="Guardar cambios"
                 :saving="saving.sistema"
-                :disabled="!selectedEquipo"
+                :disabled="!canManageAssets || !selectedEquipo"
                 @update:nombre="(value) => (sistemaForm.form.nombre = value)"
-                @submit="submitSistema"
+                @submit="handleSubmitSistema"
                 @cancel="sistemaForm.reset"
               />
             </div>
@@ -178,11 +183,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import AlertMessage from '../../../components/ui/AlertMessage.vue'
 import AssetForm from './AssetForm.vue'
 import AssetList from './AssetList.vue'
 import { useAssetHierarchy } from '../composables/useAssetHierarchy'
+
+const props = withDefaults(defineProps<{ canManage?: boolean }>(), { canManage: true })
 
 const {
   plantas,
@@ -217,6 +224,68 @@ const {
   confirmDeleteSistema,
   selectedTrail,
 } = useAssetHierarchy()
+
+const canManageAssets = computed(() => props.canManage)
+
+function handleEditPlanta(planta: any) {
+  if (!canManageAssets.value) return
+  plantaForm.startEdit(planta)
+}
+
+function handleEditArea(area: any) {
+  if (!canManageAssets.value) return
+  areaForm.startEdit(area)
+}
+
+function handleEditEquipo(equipo: any) {
+  if (!canManageAssets.value) return
+  equipoForm.startEdit(equipo)
+}
+
+function handleEditSistema(sistema: any) {
+  if (!canManageAssets.value) return
+  sistemaForm.startEdit(sistema)
+}
+
+async function handleSubmitPlanta() {
+  if (!canManageAssets.value) return
+  await submitPlanta()
+}
+
+async function handleSubmitArea() {
+  if (!canManageAssets.value) return
+  await submitArea()
+}
+
+async function handleSubmitEquipo() {
+  if (!canManageAssets.value) return
+  await submitEquipo()
+}
+
+async function handleSubmitSistema() {
+  if (!canManageAssets.value) return
+  await submitSistema()
+}
+
+async function handleDeletePlanta(planta: any) {
+  if (!canManageAssets.value) return
+  await confirmDeletePlanta(planta)
+}
+
+async function handleDeleteArea(area: any) {
+  if (!canManageAssets.value) return
+  await confirmDeleteArea(area)
+}
+
+async function handleDeleteEquipo(equipo: any) {
+  if (!canManageAssets.value) return
+  await confirmDeleteEquipo(equipo)
+}
+
+async function handleDeleteSistema(sistema: any) {
+  if (!canManageAssets.value) return
+  await confirmDeleteSistema(sistema)
+}
 
 onMounted(async () => {
   await loadPlantas()
