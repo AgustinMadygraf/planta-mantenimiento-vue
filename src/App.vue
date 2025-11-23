@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Ref } from 'vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import type { Area, Equipo, Planta, Sistema } from './types/assets'
 import {
@@ -66,6 +67,25 @@ const areaForm = reactive<CrudForm>({ id: null, nombre: '', mode: 'create' })
 const equipoForm = reactive<CrudForm>({ id: null, nombre: '', mode: 'create' })
 const sistemaForm = reactive<CrudForm>({ id: null, nombre: '', mode: 'create' })
 
+function syncSelection<T extends { id: number }>(
+  collection: T[],
+  selected: Ref<T | null>,
+  onSelect: (entity: T) => void,
+  onClear: () => void,
+) {
+  if (!collection.length) {
+    onClear()
+    return
+  }
+
+  const firstItem = collection[0]
+  const found = selected.value ? collection.find((item) => item.id === selected.value?.id) : undefined
+
+  const nextSelection = (found ?? firstItem) as T
+
+  onSelect(nextSelection)
+}
+
 function setFeedback(type: 'success' | 'danger', message: string) {
   feedback.value = { type, message }
 }
@@ -84,19 +104,7 @@ async function loadPlantas() {
   loading.plantas = true
   try {
     plantas.value = await getPlantas()
-    if (!selectedPlanta.value && plantas.value.length > 0) {
-      const firstPlanta = plantas.value[0]
-      if (firstPlanta) {
-        selectPlanta(firstPlanta)
-      }
-    } else if (selectedPlanta.value) {
-      const found = plantas.value.find((planta) => planta.id === selectedPlanta.value?.id)
-      if (!found) {
-        clearSelectionFrom('planta')
-      } else {
-        selectPlanta(found)
-      }
-    }
+    syncSelection(plantas.value, selectedPlanta, selectPlanta, () => clearSelectionFrom('planta'))
   } catch (error) {
     console.error(error)
     setFeedback('danger', (error as Error).message)
@@ -109,28 +117,7 @@ async function loadAreas(plantaId: number) {
   loading.areas = true
   try {
     areas.value = await getAreas(plantaId)
-    if (areas.value.length === 0) {
-      clearSelectionFrom('area')
-      return
-    }
-
-    if (!selectedArea.value) {
-      const firstArea = areas.value[0]
-      if (firstArea) {
-        selectArea(firstArea)
-      }
-      return
-    }
-
-    const found = areas.value.find((area) => area.id === selectedArea.value?.id)
-    if (!found) {
-      const firstArea = areas.value[0]
-      if (firstArea) {
-        selectArea(firstArea)
-      }
-    } else {
-      selectArea(found)
-    }
+    syncSelection(areas.value, selectedArea, selectArea, () => clearSelectionFrom('area'))
   } catch (error) {
     console.error(error)
     setFeedback('danger', (error as Error).message)
@@ -143,28 +130,7 @@ async function loadEquipos(areaId: number) {
   loading.equipos = true
   try {
     equipos.value = await getEquipos(areaId)
-    if (equipos.value.length === 0) {
-      clearSelectionFrom('equipo')
-      return
-    }
-
-    if (!selectedEquipo.value) {
-      const firstEquipo = equipos.value[0]
-      if (firstEquipo) {
-        selectEquipo(firstEquipo)
-      }
-      return
-    }
-
-    const found = equipos.value.find((equipo) => equipo.id === selectedEquipo.value?.id)
-    if (!found) {
-      const firstEquipo = equipos.value[0]
-      if (firstEquipo) {
-        selectEquipo(firstEquipo)
-      }
-    } else {
-      selectEquipo(found)
-    }
+    syncSelection(equipos.value, selectedEquipo, selectEquipo, () => clearSelectionFrom('equipo'))
   } catch (error) {
     console.error(error)
     setFeedback('danger', (error as Error).message)
@@ -177,28 +143,7 @@ async function loadSistemas(equipoId: number) {
   loading.sistemas = true
   try {
     sistemas.value = await getSistemas(equipoId)
-    if (sistemas.value.length === 0) {
-      clearSelectionFrom('sistema')
-      return
-    }
-
-    if (!selectedSistema.value) {
-      const firstSistema = sistemas.value[0]
-      if (firstSistema) {
-        selectSistema(firstSistema)
-      }
-      return
-    }
-
-    const found = sistemas.value.find((sistema) => sistema.id === selectedSistema.value?.id)
-    if (!found) {
-      const firstSistema = sistemas.value[0]
-      if (firstSistema) {
-        selectSistema(firstSistema)
-      }
-    } else {
-      selectSistema(found)
-    }
+    syncSelection(sistemas.value, selectedSistema, selectSistema, () => clearSelectionFrom('sistema'))
   } catch (error) {
     console.error(error)
     setFeedback('danger', (error as Error).message)
