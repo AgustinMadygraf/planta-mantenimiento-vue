@@ -25,13 +25,28 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       ...(requestOptions.headers || {}),
     },
     ...requestOptions,
+  }).catch((error) => {
+    console.error('Error de red', error)
+    throw new Error(
+      'No se pudo conectar con el servidor. Verifica tu conexión o que el backend esté disponible.',
+    )
   })
+
+  const contentType = response.headers.get('content-type') || ''
+  const isJson = contentType.includes('application/json')
 
   if (!response.ok) {
     let message = response.statusText
     try {
-      const errorBody = await response.json()
-      message = errorBody.message || message
+      if (isJson) {
+        const errorBody = await response.json()
+        message = errorBody.message || message
+      } else {
+        const errorText = await response.text()
+        if (errorText.trim()) {
+          message = errorText
+        }
+      }
     } catch (error) {
       console.warn('No se pudo parsear el cuerpo de error', error)
     }
@@ -41,6 +56,10 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (!parseResponse || response.status === 204) {
     return undefined as T
+  }
+
+  if (!isJson) {
+    throw new Error('La respuesta del servidor no tiene un formato JSON válido.')
   }
 
   return (await response.json()) as T
