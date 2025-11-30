@@ -7,6 +7,7 @@ interface RawLoginResponse {
   access_token?: string
   refresh_token?: string | null
   expires_in?: number | null
+  expiresAt?: number | null
   user?: AuthUser
   usuario?: unknown
   data?: RawLoginResponse
@@ -64,9 +65,11 @@ export async function login({
     body: JSON.stringify({ username, password }),
   })
 
+  console.log('[authApi.ts] Respuesta cruda de login:', response)
   const payload = response?.data ?? response
-
   const token = payload.token || payload.access_token
+
+  console.log('[authApi.ts] expiresAt en payload:', payload.expiresAt);
 
   if (!token) {
     devError('Login error: No token in response', response)
@@ -74,12 +77,14 @@ export async function login({
   }
 
   const user = normalizeUser(payload.user ?? payload.usuario, username)
+  const expiresAt = typeof payload.expiresAt === 'number' ? payload.expiresAt : deriveExpiration({ token, expiresInSeconds: payload.expires_in });
+  console.log('[authApi.ts] expiresAt final:', expiresAt)
 
   devLog('Login success', { user })
   return {
     token,
     refreshToken: payload.refresh_token ?? null,
-    expiresAt: deriveExpiration({ token, expiresInSeconds: payload.expires_in }),
+    expiresAt,
     user,
   }
 }

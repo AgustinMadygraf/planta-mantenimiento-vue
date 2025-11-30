@@ -26,6 +26,7 @@ export function loadSession(): NullableAuthSession {
 
   try {
     const parsed = JSON.parse(stored)
+    console.log('[session.ts] loadSession: sesión recuperada:', parsed)
     logger.log('loadSession: sesión parseada', parsed)
     if (isValidSession(parsed)) {
       logger.log('loadSession: sesión válida', parsed)
@@ -43,6 +44,8 @@ export function loadSession(): NullableAuthSession {
 
 export function persistSession(session: NullableAuthSession) {
   if (typeof window === 'undefined') return
+
+  console.log('[session.ts] persistSession:', session);
 
   if (!session) {
     logger.log('persistSession: limpiando sesión en localStorage')
