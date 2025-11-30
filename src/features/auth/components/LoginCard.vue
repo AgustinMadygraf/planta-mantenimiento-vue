@@ -59,8 +59,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-import { devLog } from '../../../utils/devLogger'
-
 const emit = defineEmits<{
   (e: 'submit', payload: { username: string; password: string; setError: (message: string | null) => void }): void
 }>()
@@ -77,10 +75,10 @@ function setError(message: string | null) {
 async function onSubmit() {
   loading.value = true
   error.value = null
-  devLog('LoginCard submit', { username: username.value })
+  console.log('LoginCard submit', { username: username.value })
   try {
     await emit('submit', { username: username.value, password: password.value, setError })
-    devLog('LoginCard submit success')
+    console.log('LoginCard submit success')
   } finally {
     loading.value = false
   }

@@ -3,7 +3,6 @@ Path: src/features/auth/services/session.ts
 */
 
 import type { AuthUser } from '../types'
-import { logger } from '../../../services/logger.js'
 
 const STORAGE_KEY = 'planta-mantenimiento.auth'
 
@@ -21,21 +20,21 @@ export function loadSession(): NullableAuthSession {
   if (typeof window === 'undefined') return null
 
   const stored = window.localStorage.getItem(STORAGE_KEY)
-  logger.log('loadSession: valor en localStorage', stored)
+  console.log('loadSession: valor en localStorage', stored)
   if (!stored) return null
 
   try {
     const parsed = JSON.parse(stored)
     console.log('[session.ts] loadSession: sesión recuperada:', parsed)
-    logger.log('loadSession: sesión parseada', parsed)
+    console.log('loadSession: sesión parseada', parsed)
     if (isValidSession(parsed)) {
-      logger.log('loadSession: sesión válida', parsed)
+      console.log('loadSession: sesión válida', parsed)
       return parsed
     } else {
-      logger.warn('loadSession: sesión inválida', parsed)
+      console.warn('loadSession: sesión inválida', parsed)
     }
   } catch (error) {
-    logger.warn('No se pudo leer la sesión almacenada', error)
+    console.warn('No se pudo leer la sesión almacenada', error)
   }
 
   window.localStorage.removeItem(STORAGE_KEY)
@@ -48,12 +47,12 @@ export function persistSession(session: NullableAuthSession) {
   console.log('[session.ts] persistSession:', session);
 
   if (!session) {
-    logger.log('persistSession: limpiando sesión en localStorage')
+    console.log('persistSession: limpiando sesión en localStorage')
     window.localStorage.removeItem(STORAGE_KEY)
     return
   }
 
-  logger.log('persistSession: guardando sesión en localStorage', session)
+  console.log('persistSession: guardando sesión en localStorage', session)
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
 }
 
@@ -102,7 +101,7 @@ function getJwtExpiration(token: string): number | null {
 
     return payload.exp * 1000
   } catch (error) {
-    logger.warn('No se pudo decodificar el token JWT para extraer expiración', error)
+    console.warn('No se pudo decodificar el token JWT para extraer expiración', error)
     return null
   }
 }

@@ -28,7 +28,5 @@
     "src/features/auth/services/authApi.ts",
     "src/features/auth/services/session.ts",
     "src/features/auth/types.ts",
-    "src/utils/devLogger.ts",
-    "src/services/logger.ts"
   ]
 }

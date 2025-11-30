@@ -3,8 +3,6 @@ Path: src/services/apiClient.ts
 */
 
 import { getActivePinia } from 'pinia'
-import { devError, devLog, devWarn } from '../utils/devLogger'
-import { logger } from './logger'
 import {
   deriveExpiration,
   isSessionExpired,
@@ -27,7 +25,7 @@ function resolveSessionStore() {
     if (!getActivePinia()) return null
     return useSessionStore()
   } catch (error) {
-    logger.warn('No se pudo acceder a la store de sesión; se usará el respaldo local.', error)
+    console.warn('No se pudo acceder a la store de sesión; se usará el respaldo local.', error)
     return null
   }
 }
@@ -62,7 +60,7 @@ async function getAuthorizationToken(): Promise<string | null> {
     } else {
       persistSession(null)
     }
-    logger.error('No se pudo refrescar la sesión', error)
+    console.error('No se pudo refrescar la sesión', error)
     throw error instanceof Error
       ? error
       : new Error('No se pudo refrescar la sesión. Inicia sesión nuevamente.')
@@ -72,7 +70,7 @@ async function getAuthorizationToken(): Promise<string | null> {
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { auth = true, parseResponse = true, ...requestOptions } = options
   const token = auth ? await getAuthorizationToken() : null
-  devLog('API request', { path, options, hasToken: Boolean(token) })
+  console.log('API request', { path, options, hasToken: Boolean(token) })
 
   if (auth && !token) {
     throw new Error('La sesión ha expirado. Inicia sesión nuevamente.')
@@ -86,8 +84,8 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     },
     ...requestOptions,
   }).catch((error) => {
-    logger.error('Error de red', error)
-    devError('Error de red', error)
+    console.error('Error de red', error)
+    console.error('Error de red', error)
     throw new Error(
       'No se pudo conectar con el servidor. Verifica tu conexión o que el backend esté disponible.',
     )
@@ -109,11 +107,11 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
         }
       }
     } catch (error) {
-      logger.warn('No se pudo parsear el cuerpo de error', error)
-      devWarn('No se pudo parsear el cuerpo de error', error)
+      console.warn('No se pudo parsear el cuerpo de error', error)
+      console.warn('No se pudo parsear el cuerpo de error', error)
     }
 
-    devError('API error response', { path, status: response.status, message })
+    console.error('API error response', { path, status: response.status, message })
     throw new Error(message)
   }
 
@@ -137,7 +135,7 @@ interface RawRefreshResponse {
 }
 
 async function refreshAccessToken(currentSession: AuthSession): Promise<AuthSession> {
-  devLog('Refreshing access token')
+  console.log('Refreshing access token')
   const response = await request<RawRefreshResponse>('/auth/refresh', {
     method: 'POST',
     auth: false,
@@ -147,7 +145,7 @@ async function refreshAccessToken(currentSession: AuthSession): Promise<AuthSess
   const token = response.token || response.access_token
 
   if (!token) {
-    devError('Refresh error: No token in response', response)
+    console.error('Refresh error: No token in response', response)
     throw new Error('La respuesta de refresco no incluye un token.')
   }
 
@@ -155,7 +153,7 @@ async function refreshAccessToken(currentSession: AuthSession): Promise<AuthSess
   const expiresAt = deriveExpiration({ token, expiresInSeconds: response.expires_in })
   const user = response.user || currentSession.user
 
-  devLog('Refresh success', { expiresAt })
+  console.log('Refresh success', { expiresAt })
   return { token, refreshToken, expiresAt, user }
 }
 

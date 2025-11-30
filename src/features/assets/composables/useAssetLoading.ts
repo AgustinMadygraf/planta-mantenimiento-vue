@@ -6,7 +6,6 @@ import {
   getSistemas,
 } from '../services/assetApi'
 import type { Area, Equipo, Planta, Sistema } from '../types'
-import { logger } from '../../../services/logger'
 import type { NotificationVariant } from '../../../stores/notifications'
 
 export type AssetLoadCallbacks = {
@@ -33,7 +32,7 @@ export function useAssetLoading(
       plantas.value = await getPlantas()
       loadCallbacks.onPlantasLoaded?.(plantas.value)
     } catch (error) {
-      logger.error(error)
+      console.error(error)
       notify('danger', (error as Error).message)
     } finally {
       loading.plantas = false
@@ -46,7 +45,7 @@ export function useAssetLoading(
       areas.value = await getAreas(plantaId)
       loadCallbacks.onAreasLoaded?.(areas.value)
     } catch (error) {
-      logger.error(error)
+      console.error(error)
       notify('danger', (error as Error).message)
     } finally {
       loading.areas = false
@@ -59,7 +58,7 @@ export function useAssetLoading(
       equipos.value = await getEquipos(areaId)
       loadCallbacks.onEquiposLoaded?.(equipos.value)
     } catch (error) {
-      logger.error(error)
+      console.error(error)
       notify('danger', (error as Error).message)
     } finally {
       loading.equipos = false
@@ -72,7 +71,7 @@ export function useAssetLoading(
       sistemas.value = await getSistemas(equipoId)
       loadCallbacks.onSistemasLoaded?.(sistemas.value)
     } catch (error) {
-      logger.error(error)
+      console.error(error)
       notify('danger', (error as Error).message)
     } finally {
       loading.sistemas = false

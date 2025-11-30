@@ -8,8 +8,6 @@ import type { AuthUser } from '../types'
 import { login as requestLogin } from '../services/authApi'
 import { useSessionStore } from '../../../stores/session'
 
-import { devLog } from '../../../utils/devLogger'
-
 export function useAuth() {
   const sessionStore = useSessionStore()
   const { session } = storeToRefs(sessionStore)
@@ -19,32 +17,32 @@ export function useAuth() {
     const sanitizedUsername = username.trim()
     const sanitizedPassword = password.trim()
 
-    devLog('useAuth.login called', { sanitizedUsername })
+    console.log('useAuth.login called', { sanitizedUsername })
     let authSession
     try {
       authSession = await requestLogin({
         username: sanitizedUsername,
         password: sanitizedPassword,
       })
-      devLog('useAuth.login: authSession recibido', authSession)
+      console.log('useAuth.login: authSession recibido', authSession)
     } catch (error) {
-      devLog('useAuth.login: error en requestLogin', error)
+      console.log('useAuth.login: error en requestLogin', error)
       throw error
     }
 
     if (!authSession || !authSession.user) {
-      devLog('useAuth.login: sesión inválida o sin usuario', authSession)
+      console.log('useAuth.login: sesión inválida o sin usuario', authSession)
       throw new Error('No se recibió usuario válido en la sesión')
     }
 
     sessionStore.setSession(authSession)
-    devLog('useAuth.login: sessionStore.setSession ejecutado', authSession)
-    devLog('Session persisted', { user: authSession.user })
+    console.log('useAuth.login: sessionStore.setSession ejecutado', authSession)
+    console.log('Session persisted', { user: authSession.user })
   }
 
   function logout() {
     sessionStore.clearSession()
-    devLog('User logged out')
+    console.log('User logged out')
   }
 
   return { user, login, logout }

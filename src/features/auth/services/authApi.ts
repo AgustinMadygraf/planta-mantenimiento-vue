@@ -4,7 +4,6 @@ Path: src/features/auth/services/authApi.ts
 
 import type { AuthUser, UserRole } from '../types'
 import { deriveExpiration } from './session.js'
-import { devError, devLog } from '../../../utils/devLogger.js'
 
 interface RawLoginResponse {
   token?: string
@@ -41,12 +40,15 @@ async function resolveRequest(): Promise<RequestFunction> {
   if (loginRequest) return loginRequest
 
   // Use stub in development, real API in production
+  console.log('[authApi.ts] resolveRequest: import.meta.env.MODE =', import.meta.env.MODE)
   if (import.meta.env.MODE === 'development') {
     const module = await import('../../../stubs/apiClient')
+    console.log('[authApi.ts] resolveRequest: usando stub de apiClient', module)
     loginRequest = module.request
     return loginRequest
   } else {
     const module = await import('../../../services/apiClient')
+    console.log('[authApi.ts] resolveRequest: usando apiClient real', module)
     loginRequest = module.request
     return loginRequest
   }
@@ -67,7 +69,7 @@ export async function login({
   username: string
   password: string
 }): Promise<LoginSuccess> {
-  devLog('Login attempt', { username })
+  console.log('Login attempt', { username })
   const request = await resolveRequest()
   const response = await request('/auth/login', {
     method: 'POST',
@@ -82,7 +84,7 @@ export async function login({
   console.log('[authApi.ts] expiresAt en payload:', payload.expiresAt);
 
   if (!token) {
-    devError('Login error: No token in response', response)
+    console.error('Login error: No token in response', response)
     throw new Error('La respuesta de autenticación no incluye un token.')
   }
 
@@ -97,7 +99,7 @@ export async function login({
     user,
   });
 
-  devLog('Login success', { user })
+  console.log('Login success', { user })
   return {
     token,
     refreshToken: payload.refresh_token ?? null,

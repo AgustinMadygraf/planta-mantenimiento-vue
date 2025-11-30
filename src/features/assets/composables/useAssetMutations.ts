@@ -16,7 +16,6 @@ import {
   updateSistema,
 } from '../services/assetApi'
 import { useCrudForm } from './useCrudForm'
-import { logger } from '../../../services/logger'
 import type { NotificationVariant } from '../../../stores/notifications'
 
 export function useAssetMutations(params: {
@@ -71,7 +70,7 @@ export function useAssetMutations(params: {
       plantaForm.reset()
       await loadPlantas()
     } catch (error) {
-      logger.error(error)
+      console.error(error)
       notify('danger', (error as Error).message)
     } finally {
       saving.planta = false
@@ -102,7 +101,7 @@ export function useAssetMutations(params: {
       areaForm.reset()
       await loadAreas(selectedPlanta.value.id)
     } catch (error) {
-      logger.error(error)
+      console.error(error)
       notify('danger', (error as Error).message)
     } finally {
       saving.area = false
@@ -133,7 +132,7 @@ export function useAssetMutations(params: {
       equipoForm.reset()
       await loadEquipos(selectedArea.value.id)
     } catch (error) {
-      logger.error(error)
+      console.error(error)
       notify('danger', (error as Error).message)
     } finally {
       saving.equipo = false
@@ -164,7 +163,7 @@ export function useAssetMutations(params: {
       sistemaForm.reset()
       await loadSistemas(selectedEquipo.value.id)
     } catch (error) {
-      logger.error(error)
+      console.error(error)
       notify('danger', (error as Error).message)
     } finally {
       saving.sistema = false
@@ -185,7 +184,7 @@ export function useAssetMutations(params: {
       }
       await loadPlantas()
     } catch (error) {
-      logger.error(error)
+      console.error(error)
       notify('danger', (error as Error).message)
     } finally {
       removing.planta = false
@@ -208,7 +207,7 @@ export function useAssetMutations(params: {
         await loadAreas(selectedPlanta.value.id)
       }
     } catch (error) {
-      logger.error(error)
+      console.error(error)
       notify('danger', (error as Error).message)
     } finally {
       removing.area = false
@@ -231,7 +230,7 @@ export function useAssetMutations(params: {
         await loadEquipos(selectedArea.value.id)
       }
     } catch (error) {
-      logger.error(error)
+      console.error(error)
       notify('danger', (error as Error).message)
     } finally {
       removing.equipo = false
@@ -254,7 +253,7 @@ export function useAssetMutations(params: {
         await loadSistemas(selectedEquipo.value.id)
       }
     } catch (error) {
-      logger.error(error)
+      console.error(error)
       notify('danger', (error as Error).message)
     } finally {
       removing.sistema = false
