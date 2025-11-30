@@ -20,11 +20,18 @@
           {{ item.nombre }}
         </button>
         <div v-if="canManage" class="btn-group btn-group-sm">
-          <button type="button" class="btn btn-outline-light" @click.stop="$emit('edit', item)">Editar</button>
           <button
             type="button"
             class="btn btn-outline-light"
-            :disabled="removing"
+            :disabled="!actionAllowed(item)"
+            @click.stop="$emit('edit', item)"
+          >
+            Editar
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-light"
+            :disabled="removing || !actionAllowed(item)"
             @click.stop="$emit('delete', item)"
           >
             Eliminar
@@ -47,9 +54,12 @@ withDefaults(
     removing: boolean
     emptyLabel: string
     canManage?: boolean
+    isActionAllowed?: (item: AssetListItem) => boolean
   }>(),
   { canManage: true },
 )
+
+const actionAllowed = (item: AssetListItem) => (props.isActionAllowed ? props.isActionAllowed(item) : props.canManage)
 
 defineEmits<{
   (e: 'select', item: any): void
