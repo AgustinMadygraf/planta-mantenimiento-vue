@@ -42,7 +42,7 @@ async function resolveRequest(): Promise<RequestFunction> {
   // Use stub in development, real API in production
   console.log('[authApi.ts] resolveRequest: import.meta.env.MODE =', import.meta.env.MODE)
   if (import.meta.env.MODE === 'development') {
-    const module = await import('../../../stubs/apiClient')
+    const module = await import('../../../stubs/apiClient.stub')
     console.log('[authApi.ts] resolveRequest: usando stub de apiClient', module)
     loginRequest = module.request
     return loginRequest
@@ -88,24 +88,24 @@ export async function login({
     throw new Error('La respuesta de autenticación no incluye un token.')
   }
 
-  const user = normalizeUser(payload.user ?? payload.usuario, username)
-  const expiresAt = typeof payload.expiresAt === 'number' ? payload.expiresAt : deriveExpiration({ token, expiresInSeconds: payload.expires_in });
-  console.log('[authApi.ts] expiresAt final:', expiresAt)
+    const user = normalizeUser(payload.user ?? payload.usuario, username)
+    const expiresAt = typeof payload.expiresAt === 'number' ? payload.expiresAt : deriveExpiration({ token, expiresInSeconds: payload.expires_in });
+    const refreshToken = payload.refresh_token ?? null;
+    console.log('[authApi.ts] refreshToken en payload:', payload.refresh_token);
+    console.log('[authApi.ts] objeto final de sesión:', {
+      token,
+      refreshToken,
+      expiresAt,
+      user,
+    });
 
-  console.log('[authApi.ts] objeto final de sesión:', {
-    token,
-    refreshToken: payload.refresh_token ?? null,
-    expiresAt,
-    user,
-  });
-
-  console.log('Login success', { user })
-  return {
-    token,
-    refreshToken: payload.refresh_token ?? null,
-    expiresAt,
-    user,
-  }
+    console.log('Login success', { user })
+    return {
+      token,
+      refreshToken,
+      expiresAt,
+      user,
+    }
 }
 
 function normalizeUser(rawUser: unknown, username: string): AuthUser {

@@ -1,5 +1,5 @@
 /*
-Path: src/stubs/apiClient.ts
+Path: src/stubs/apiClient.stub.ts
 */
 
 import type { UserRole } from '../features/auth/types'
@@ -23,7 +23,7 @@ export async function request(path: string, options?: { method?: string; body?: 
       console.log('[stub] expiresAt:', expiresAt, 'expires_in:', expiresIn);
       const sessionObj = {
         token: 'demo-token',
-        refreshToken: null,
+        refresh_token: 'demo-refresh-token',
         expiresAt,
         expires_in: expiresIn,
         user: demoUsers[username],

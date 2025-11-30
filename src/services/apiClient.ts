@@ -70,9 +70,11 @@ async function getAuthorizationToken(): Promise<string | null> {
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { auth = true, parseResponse = true, ...requestOptions } = options
   const token = auth ? await getAuthorizationToken() : null
+  console.log('[apiClient.ts] request: path =', path, 'auth =', auth, 'token =', token)
   console.log('API request', { path, options, hasToken: Boolean(token) })
 
   if (auth && !token) {
+    console.log('[apiClient.ts] request: sesión expirada o sin token, lanzando error')
     throw new Error('La sesión ha expirado. Inicia sesión nuevamente.')
   }
 
