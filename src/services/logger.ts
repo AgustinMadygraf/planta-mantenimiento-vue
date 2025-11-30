@@ -1,3 +1,8 @@
+/*
+Path: src/services/logger.ts
+*/
+
+declare const process: any;
 const envMode =
   (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.MODE) ||
   (typeof process !== 'undefined' ? process.env?.NODE_ENV : undefined)

@@ -1,3 +1,7 @@
+/*
+Path: src/features/auth/services/session.ts
+*/
+
 import type { AuthUser } from '../types'
 import { logger } from '../../../services/logger.js'
 
@@ -17,11 +21,18 @@ export function loadSession(): NullableAuthSession {
   if (typeof window === 'undefined') return null
 
   const stored = window.localStorage.getItem(STORAGE_KEY)
+  logger.log('loadSession: valor en localStorage', stored)
   if (!stored) return null
 
   try {
     const parsed = JSON.parse(stored)
-    if (isValidSession(parsed)) return parsed
+    logger.log('loadSession: sesión parseada', parsed)
+    if (isValidSession(parsed)) {
+      logger.log('loadSession: sesión válida', parsed)
+      return parsed
+    } else {
+      logger.warn('loadSession: sesión inválida', parsed)
+    }
   } catch (error) {
     logger.warn('No se pudo leer la sesión almacenada', error)
   }
@@ -34,10 +45,12 @@ export function persistSession(session: NullableAuthSession) {
   if (typeof window === 'undefined') return
 
   if (!session) {
+    logger.log('persistSession: limpiando sesión en localStorage')
     window.localStorage.removeItem(STORAGE_KEY)
     return
   }
 
+  logger.log('persistSession: guardando sesión en localStorage', session)
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
 }
 
@@ -46,9 +59,16 @@ export function getAuthToken(): string | null {
 }
 
 export function isSessionExpired(session: AuthSession | null, clockSkewMs = 30_000): boolean {
-  if (!session || !session.expiresAt) return false
+  if (!session || !session.expiresAt) {
+    console.log('[isSessionExpired] Sesión nula o sin expiresAt:', session)
+    return false
+  }
 
-  return Date.now() + clockSkewMs >= session.expiresAt
+  const now = Date.now()
+  const expires = session.expiresAt
+  const expired = now + clockSkewMs >= expires
+  console.log('[isSessionExpired] now:', now, 'expiresAt:', expires, 'clockSkewMs:', clockSkewMs, 'expired:', expired)
+  return expired
 }
 
 export function deriveExpiration({

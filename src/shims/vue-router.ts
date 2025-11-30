@@ -1,3 +1,7 @@
+/*
+Path: src/shims/vue-router.ts
+*/
+
 import { getCurrentInstance, inject, reactive, readonly, type App, type Component, h, defineAsyncComponent } from 'vue'
 
 export type NavigationGuardNext = (value?: any) => void
@@ -48,7 +52,16 @@ export function createRouter({ history, routes }: { history: any; routes: RouteR
       updateRoute(to)
     },
     beforeEach(guard: (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => void) {
-      guard?.(routeState as RouteLocationNormalized, routeState as RouteLocationNormalized, () => {})
+      guard?.(
+        routeState as RouteLocationNormalized,
+        routeState as RouteLocationNormalized,
+        (nextArg?: any) => {
+          if (nextArg && typeof nextArg === 'object') {
+            // Si es una redirección, actualiza la ruta
+            updateRoute(nextArg)
+          }
+        }
+      )
     },
     addRoute(route: RouteRecord) {
       routes.push(route)

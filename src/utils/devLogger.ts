@@ -1,4 +1,8 @@
-// src/utils/devLogger.ts
+/*
+Path: src/utils/devLogger.ts
+*/
+
+declare const process: any;
 const mode =
   (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.MODE) ||
   (typeof process !== 'undefined' ? process.env?.NODE_ENV : undefined)

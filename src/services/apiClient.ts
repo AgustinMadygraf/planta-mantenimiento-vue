@@ -1,3 +1,7 @@
+/*
+Path: src/services/apiClient.ts
+*/
+
 import { getActivePinia } from 'pinia'
 import { devError, devLog, devWarn } from '../utils/devLogger'
 import { logger } from './logger'

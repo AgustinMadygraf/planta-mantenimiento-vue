@@ -1,3 +1,7 @@
+/*
+Path: src/features/auth/composables/useAuth.ts
+*/
+
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import type { AuthUser } from '../types'
@@ -16,13 +20,25 @@ export function useAuth() {
     const sanitizedPassword = password.trim()
 
     devLog('useAuth.login called', { sanitizedUsername })
-    const authSession = await requestLogin({
-      username: sanitizedUsername,
-      password: sanitizedPassword,
-    })
+    let authSession
+    try {
+      authSession = await requestLogin({
+        username: sanitizedUsername,
+        password: sanitizedPassword,
+      })
+      devLog('useAuth.login: authSession recibido', authSession)
+    } catch (error) {
+      devLog('useAuth.login: error en requestLogin', error)
+      throw error
+    }
 
-    console.log('useAuth.ts: authSession recibido:', authSession)
+    if (!authSession || !authSession.user) {
+      devLog('useAuth.login: sesión inválida o sin usuario', authSession)
+      throw new Error('No se recibió usuario válido en la sesión')
+    }
+
     sessionStore.setSession(authSession)
+    devLog('useAuth.login: sessionStore.setSession ejecutado', authSession)
     devLog('Session persisted', { user: authSession.user })
   }
 
