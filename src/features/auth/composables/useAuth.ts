@@ -17,8 +17,31 @@ const DEMO_USERS: Record<UserRole, Credentials> = {
   invitado: { username: 'invitado', password: 'invitado' },
 }
 
-const storedUser = typeof window !== 'undefined' ? window.localStorage.getItem(STORAGE_KEY) : null
-const user = ref<AuthUser | null>(storedUser ? JSON.parse(storedUser) : null)
+function isValidAuthUser(value: unknown): value is AuthUser {
+  if (!value || typeof value !== 'object') return false
+
+  const candidate = value as Partial<AuthUser>
+  return typeof candidate.username === 'string' && typeof candidate.role === 'string'
+}
+
+function loadStoredUser(): AuthUser | null {
+  if (typeof window === 'undefined') return null
+
+  const storedUser = window.localStorage.getItem(STORAGE_KEY)
+  if (!storedUser) return null
+
+  try {
+    const parsed = JSON.parse(storedUser)
+    if (isValidAuthUser(parsed)) return parsed
+  } catch (error) {
+    // Ignore and clear storage below
+  }
+
+  window.localStorage.removeItem(STORAGE_KEY)
+  return null
+}
+
+const user = ref<AuthUser | null>(loadStoredUser())
 
 function persistUser(value: AuthUser | null) {
   if (typeof window === 'undefined') return
