@@ -1,7 +1,6 @@
 import type { AuthUser, UserRole } from '../types'
-import { deriveExpiration } from './session'
-import { request } from '../../../services/apiClient'
-import { devError, devLog } from '../../../utils/devLogger'
+import { deriveExpiration } from './session.js'
+import { devError, devLog } from '../../../utils/devLogger.js'
 
 interface RawLoginResponse {
   token?: string
@@ -20,6 +19,36 @@ export interface LoginSuccess {
   user: AuthUser
 }
 
+type RequestFunction = (
+  path: string,
+  options?: {
+    auth?: boolean
+    parseResponse?: boolean
+    method?: string
+    body?: BodyInit | null
+    headers?: HeadersInit
+  },
+) => Promise<RawLoginResponse>
+
+let loginRequest: RequestFunction | null = null
+
+async function resolveRequest(): Promise<RequestFunction> {
+  if (loginRequest) return loginRequest
+
+  // @ts-ignore - resolved at runtime; mapped to a stub during isolated test builds
+  const module = await import('../../../services/apiClient')
+  loginRequest = module.request
+  return loginRequest
+}
+
+export function __setAuthRequest(mockedRequest: RequestFunction) {
+  loginRequest = mockedRequest
+}
+
+export function __resetAuthRequest() {
+  loginRequest = null
+}
+
 export async function login({
   username,
   password,
@@ -28,7 +57,8 @@ export async function login({
   password: string
 }): Promise<LoginSuccess> {
   devLog('Login attempt', { username })
-  const response = await request<RawLoginResponse>('/auth/login', {
+  const request = await resolveRequest()
+  const response = await request('/auth/login', {
     method: 'POST',
     auth: false,
     body: JSON.stringify({ username, password }),

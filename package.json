@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "tsc --project tsconfig.tests.json && node --experimental-specifier-resolution=node --test .tmp/tests/tests"
   },
   "dependencies": {
     "bootstrap": "^5.3.8",

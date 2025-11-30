@@ -1,5 +1,5 @@
 import type { AuthUser } from '../types'
-import { logger } from '../../../services/logger'
+import { logger } from '../../../services/logger.js'
 
 const STORAGE_KEY = 'planta-mantenimiento.auth'
 
