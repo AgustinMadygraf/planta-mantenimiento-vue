@@ -6,10 +6,14 @@ const STORAGE_KEY = 'planta-mantenimiento.auth'
 interface Credentials {
   username: string
   password: string
+  areas?: number[]
+  equipos?: number[]
 }
 
 const DEMO_USERS: Record<UserRole, Credentials> = {
   superadministrador: { username: 'superadmin', password: 'superadmin' },
+  administrador: { username: 'admin-area', password: 'admin-area', areas: [1] },
+  maquinista: { username: 'maquinista', password: 'maquinista', equipos: [1, 2] },
   invitado: { username: 'invitado', password: 'invitado' },
 }
 
@@ -33,7 +37,7 @@ function matchCredentials(username: string, password: string): AuthUser | null {
   const [role, creds] = entry as [UserRole, Credentials]
   if (creds.password !== password) return null
 
-  return { username, role }
+  return { username, role, areas: creds.areas, equipos: creds.equipos }
 }
 
 export function useAuth() {
@@ -41,7 +45,9 @@ export function useAuth() {
     const match = matchCredentials(username.trim(), password.trim())
 
     if (!match) {
-      throw new Error('Credenciales inválidas. Usa superadmin/superadmin o invitado/invitado.')
+      throw new Error(
+        'Credenciales inválidas. Usa superadmin/superadmin, admin-area/admin-area, maquinista/maquinista o invitado/invitado.',
+      )
     }
 
     user.value = match
