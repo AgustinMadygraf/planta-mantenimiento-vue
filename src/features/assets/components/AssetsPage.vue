@@ -7,10 +7,6 @@
       </p>
     </header>
 
-    <section v-if="feedback" class="mb-3">
-      <AlertMessage :feedback="feedback" @close="clearFeedback" />
-    </section>
-
     <section v-if="selectedTrail" class="mb-4">
       <div class="alert alert-info" role="status">
         <strong>Ruta seleccionada:</strong> {{ selectedTrail }}
@@ -198,11 +194,12 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import type { AuthUser } from '../../auth/types'
-import type { Area, Equipo, Sistema } from '../../../types/assets'
-import AlertMessage from '../../../components/ui/AlertMessage.vue'
+import { createAssetPermissionService } from '../../auth/services/permissions'
+import type { Area, Equipo, Sistema } from '../types'
 import AssetForm from './AssetForm.vue'
 import AssetList from './AssetList.vue'
 import { useAssetHierarchy } from '../composables/useAssetHierarchy'
+import { useNotifier } from '../../../composables/useNotifier'
 
 const props = defineProps<{ user: AuthUser | null }>()
 
@@ -218,9 +215,6 @@ const {
   loading,
   saving,
   removing,
-  feedback,
-  setFeedback,
-  clearFeedback,
   plantaForm,
   areaForm,
   equipoForm,
@@ -241,52 +235,31 @@ const {
   selectedTrail,
 } = useAssetHierarchy()
 
-const role = computed(() => props.user?.role ?? 'invitado')
-const allowedAreas = computed(() => props.user?.areas ?? [])
-const allowedEquipos = computed(() => props.user?.equipos ?? [])
+const { notifyWarning } = useNotifier()
 
-const canManagePlantas = computed(() => role.value === 'superadministrador')
-const canManageAreas = computed(() => role.value === 'superadministrador' || role.value === 'administrador')
-const canManageEquipos = computed(
-  () => role.value === 'superadministrador' || role.value === 'administrador' || role.value === 'maquinista',
-)
+const permissionService = computed(() => createAssetPermissionService(props.user))
+
+const canManagePlantas = computed(() => permissionService.value.canManagePlantas())
+const canManageAreas = computed(() => permissionService.value.canManageAreas())
+const canManageEquipos = computed(() => permissionService.value.canManageEquipos())
 
 function isAreaAllowed(area?: Area | null) {
-  if (!area) return false
-  if (role.value === 'superadministrador') return true
-  if (role.value === 'administrador') return allowedAreas.value.includes(area.id)
-  return false
+  return permissionService.value.isAreaAllowed(area ?? null, equipos.value)
 }
 
 function isEquipoAllowed(equipo?: Equipo | null) {
-  if (!equipo) return false
-  if (role.value === 'superadministrador') return true
-  if (role.value === 'administrador') return allowedAreas.value.includes(equipo.areaId)
-  if (role.value === 'maquinista') return allowedEquipos.value.includes(equipo.id)
-  return false
+  return permissionService.value.isEquipoAllowed(equipo)
 }
 
 function isSistemaAllowed(sistema?: Sistema | null) {
-  if (!sistema) return false
-  const equipo = equipos.value.find((item) => item.id === sistema.equipoId)
-  return isEquipoAllowed(equipo)
+  return permissionService.value.isSistemaAllowed(sistema ?? null, equipos.value)
 }
 
-const canCreateArea = computed(() => canManagePlantas.value)
-const canCreateEquipo = computed(() => {
-  if (!selectedArea.value) return false
-  if (role.value === 'superadministrador') return true
-  if (role.value === 'administrador') return isAreaAllowed(selectedArea.value)
-  return false
-})
-
-const canCreateSistema = computed(() => {
-  if (!selectedEquipo.value) return false
-  if (role.value === 'superadministrador') return true
-  if (role.value === 'administrador') return isAreaAllowed(selectedArea.value)
-  if (role.value === 'maquinista') return isEquipoAllowed(selectedEquipo.value)
-  return false
-})
+const canCreateArea = computed(() => permissionService.value.canCreateArea(selectedPlanta.value))
+const canCreateEquipo = computed(() => permissionService.value.canCreateEquipo(selectedArea.value))
+const canCreateSistema = computed(() =>
+  permissionService.value.canCreateSistema(selectedArea.value, selectedEquipo.value),
+)
 
 const plantaFormDisabled = computed(() => !canManagePlantas.value)
 const areaFormDisabled = computed(() => {
@@ -313,7 +286,7 @@ const sistemaFormDisabled = computed(() => {
 
 function guardAction(condition: boolean, message: string) {
   if (!condition) {
-    setFeedback('warning', message)
+    notifyWarning(message)
     return false
   }
   return true

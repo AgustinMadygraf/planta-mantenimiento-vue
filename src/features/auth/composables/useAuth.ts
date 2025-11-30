@@ -1,15 +1,16 @@
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import type { AuthUser } from '../types'
-import { login as requestLogin } from '../../../services/api'
-import type { AuthSession } from '../../../services/session'
-import { loadSession, persistSession } from '../../../services/session'
+import { login as requestLogin } from '../services/authApi'
+import { useSessionStore } from '../../../stores/session'
 
 import { devLog } from '../../../utils/devLogger'
 
-const session = ref<AuthSession | null>(loadSession())
-const user = computed<AuthUser | null>(() => session.value?.user ?? null)
-
 export function useAuth() {
+  const sessionStore = useSessionStore()
+  const { session } = storeToRefs(sessionStore)
+  const user = computed<AuthUser | null>(() => session.value?.user ?? null)
+
   async function login(username: string, password: string) {
     const sanitizedUsername = username.trim()
     const sanitizedPassword = password.trim()
@@ -20,14 +21,12 @@ export function useAuth() {
       password: sanitizedPassword,
     })
 
-    session.value = authSession
-    persistSession(authSession)
+    sessionStore.setSession(authSession)
     devLog('Session persisted', { user: authSession.user })
   }
 
   function logout() {
-    session.value = null
-    persistSession(null)
+    sessionStore.clearSession()
     devLog('User logged out')
   }
 
