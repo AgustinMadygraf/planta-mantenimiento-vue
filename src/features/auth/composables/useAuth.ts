@@ -21,6 +21,7 @@ export function useAuth() {
       password: sanitizedPassword,
     })
 
+    console.log('useAuth.ts: authSession recibido:', authSession)
     sessionStore.setSession(authSession)
     devLog('Session persisted', { user: authSession.user })
   }

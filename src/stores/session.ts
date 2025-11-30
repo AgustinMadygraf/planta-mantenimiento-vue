@@ -14,6 +14,7 @@ export const useSessionStore = defineStore('session', () => {
   const isExpired = computed(() => isSessionExpired(session.value))
 
   function setSession(newSession: AuthSession | null) {
+    console.log('session.ts: setSession called with:', newSession)
     session.value = newSession
     persistSession(newSession)
   }

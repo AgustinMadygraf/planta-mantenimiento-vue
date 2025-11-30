@@ -1,4 +1,4 @@
-import { getCurrentInstance, inject, reactive, readonly, type App, type Component } from 'vue'
+import { getCurrentInstance, inject, reactive, readonly, type App, type Component, h, defineAsyncComponent } from 'vue'
 
 export type NavigationGuardNext = (value?: any) => void
 export type RouteRecord = { name?: string; path?: string; component?: Component; children?: RouteRecord[]; meta?: Record<string, any> }
@@ -105,7 +105,46 @@ export function useRoute(): RouteLocationNormalized {
 
 export const RouterView = {
   name: 'RouterView',
-  setup(_props: any, { slots }: any) {
-    return () => (slots?.default ? slots.default() : null)
+  setup() {
+    const router = useRouter()
+    return () => {
+      try {
+        const route = router.options.routes.find(
+          (r: any) => r.path === routeState.path || r.name === routeState.name
+        )
+        console.log('RouterView:', {
+          currentPath: routeState.path,
+          currentName: routeState.name,
+          foundRoute: route,
+        })
+        if (!route) {
+          console.warn('RouterView: No se encontró la ruta actual.')
+          return null
+        }
+
+        let component = route.component
+        if (typeof component === 'function') {
+          console.log('RouterView: componente asíncrono, pasando función a defineAsyncComponent...')
+          component = defineAsyncComponent(async () => {
+            const mod = await route.component()
+            console.log('RouterView: módulo importado:', mod)
+            console.log('RouterView: mod.default es:', mod.default)
+            console.log('RouterView: typeof mod.default:', typeof mod.default)
+            if (!mod.default) {
+              console.warn('RouterView: El módulo importado no tiene propiedad default.')
+            }
+            return mod.default || mod
+          })
+          console.log('RouterView: defineAsyncComponent creado:', component)
+        } else {
+          console.log('RouterView: componente sincrónico', component)
+        }
+        console.log('RouterView: h() va a renderizar:', component)
+        return component ? h(component) : null
+      } catch (error) {
+        console.error('RouterView: error al renderizar el componente de la ruta.', error)
+        return h('div', { style: 'color: red; padding: 1rem;' }, 'Error al renderizar la ruta.')
+      }
+    }
   },
 }
