@@ -5,7 +5,15 @@
         <div class="card shadow-sm">
           <div class="card-body p-4">
             <h1 class="h4 mb-3 text-center">Iniciar sesión</h1>
-            <p class="text-muted text-center mb-4">Usa superadmin/superadmin o invitado/invitado.</p>
+            <div class="text-muted mb-4 small">
+              <p class="text-center mb-2">Usuarios demo disponibles:</p>
+              <ul class="mb-0 ps-3">
+                <li><strong>Superadministrador:</strong> superadmin / superadmin</li>
+                <li><strong>Administrador de área:</strong> admin-area / admin-area</li>
+                <li><strong>Maquinista:</strong> maquinista / maquinista</li>
+                <li><strong>Invitado:</strong> invitado / invitado</li>
+              </ul>
+            </div>
 
             <form class="vstack gap-3" @submit.prevent="onSubmit">
               <div>

@@ -36,7 +36,7 @@
               :loading="loading.plantas"
               :removing="removing.planta"
               :can-manage="canManagePlantas"
-              :is-action-allowed="() => canManagePlantas.value"
+              :is-action-allowed="() => canManagePlantas"
               empty-label="No hay plantas registradas aún."
               @select="selectPlanta"
               @edit="handleEditPlanta"

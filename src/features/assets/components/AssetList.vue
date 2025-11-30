@@ -46,7 +46,7 @@
 <script setup lang="ts">
 type AssetListItem = { id: number; nombre: string; [key: string]: unknown }
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     items: AssetListItem[]
     selectedId: number | null
@@ -54,7 +54,7 @@ withDefaults(
     removing: boolean
     emptyLabel: string
     canManage?: boolean
-    isActionAllowed?: (item: AssetListItem) => boolean
+    isActionAllowed?: (item: any) => boolean
   }>(),
   { canManage: true },
 )
