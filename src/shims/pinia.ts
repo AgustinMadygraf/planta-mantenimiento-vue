@@ -1,4 +1,12 @@
-import { computed, getCurrentInstance, inject, reactive, toRefs, type App } from 'vue'
+import {
+  computed,
+  getCurrentInstance,
+  inject,
+  isReactive,
+  reactive,
+  toRefs,
+  type App,
+} from 'vue'
 
 const PINIA_SYMBOL = Symbol('pinia')
 
@@ -46,10 +54,11 @@ export function defineStore(id: string, setup: any): any {
     let store: any
 
     if (typeof setup === 'function') {
-      store = setup()
+      const rawStore = setup()
+      store = isReactive(rawStore) ? rawStore : reactive(rawStore)
     } else {
       const state = reactive(setup.state ? setup.state() : {})
-      store = { ...toRefs(state) }
+      store = state
 
       if (setup.getters) {
         Object.entries(setup.getters).forEach(([key, getter]) => {
@@ -75,5 +84,5 @@ export function defineStore(id: string, setup: any): any {
 }
 
 export function storeToRefs<T extends Record<string, any>>(store: T): T {
-  return toRefs(store) as unknown as T
+  return isReactive(store) ? (toRefs(store) as unknown as T) : (store as T)
 }
