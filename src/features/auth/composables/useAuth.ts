@@ -1,86 +1,72 @@
-import { ref } from 'vue'
-import type { AuthUser, UserRole } from '../types'
+import { computed, ref } from 'vue'
+import { login as loginRequest } from '../../../services/auth'
+import { getActiveSession, saveSession } from '../session'
+import type { AuthSession } from '../types'
 
-const STORAGE_KEY = 'planta-mantenimiento.auth'
+const user = ref<AuthSession['user'] | null>(null)
+const token = ref<string | null>(null)
+const expiresAt = ref<number | null>(null)
+let expiryTimer: number | null = null
 
-interface Credentials {
-  username: string
-  password: string
-  areas?: number[]
-  equipos?: number[]
+function isBrowser() {
+  return typeof window !== 'undefined'
 }
 
-const DEMO_USERS: Record<UserRole, Credentials> = {
-  superadministrador: { username: 'superadmin', password: 'superadmin' },
-  administrador: { username: 'admin-area', password: 'admin-area', areas: [1] },
-  maquinista: { username: 'maquinista', password: 'maquinista', equipos: [1, 2] },
-  invitado: { username: 'invitado', password: 'invitado' },
-}
-
-function isValidAuthUser(value: unknown): value is AuthUser {
-  if (!value || typeof value !== 'object') return false
-
-  const candidate = value as Partial<AuthUser>
-  return typeof candidate.username === 'string' && typeof candidate.role === 'string'
-}
-
-function loadStoredUser(): AuthUser | null {
-  if (typeof window === 'undefined') return null
-
-  const storedUser = window.localStorage.getItem(STORAGE_KEY)
-  if (!storedUser) return null
-
-  try {
-    const parsed = JSON.parse(storedUser)
-    if (isValidAuthUser(parsed)) return parsed
-  } catch (error) {
-    // Ignore and clear storage below
-  }
-
-  window.localStorage.removeItem(STORAGE_KEY)
-  return null
-}
-
-const user = ref<AuthUser | null>(loadStoredUser())
-
-function persistUser(value: AuthUser | null) {
-  if (typeof window === 'undefined') return
-
-  if (value) {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value))
-  } else {
-    window.localStorage.removeItem(STORAGE_KEY)
+function clearExpiryTimer() {
+  if (expiryTimer !== null && isBrowser()) {
+    window.clearTimeout(expiryTimer)
+    expiryTimer = null
   }
 }
 
-function matchCredentials(username: string, password: string): AuthUser | null {
-  const entry = Object.entries(DEMO_USERS).find(([, creds]) => creds.username === username)
-  if (!entry) return null
+function applySession(session: AuthSession | null) {
+  clearExpiryTimer()
 
-  const [role, creds] = entry as [UserRole, Credentials]
-  if (creds.password !== password) return null
+  if (!session) {
+    user.value = null
+    token.value = null
+    expiresAt.value = null
+    saveSession(null)
+    return
+  }
 
-  return { username, role, areas: creds.areas, equipos: creds.equipos }
-}
+  user.value = session.user
+  token.value = session.token
+  expiresAt.value = session.expiresAt
+  saveSession(session)
 
-export function useAuth() {
-  async function login(username: string, password: string) {
-    const match = matchCredentials(username.trim(), password.trim())
+  if (isBrowser()) {
+    const msUntilExpiry = session.expiresAt - Date.now()
 
-    if (!match) {
-      throw new Error(
-        'Credenciales inválidas. Usa superadmin/superadmin, admin-area/admin-area, maquinista/maquinista o invitado/invitado.',
-      )
+    if (msUntilExpiry <= 0) {
+      applySession(null)
+      return
     }
 
-    user.value = match
-    persistUser(match)
+    expiryTimer = window.setTimeout(() => applySession(null), msUntilExpiry)
+  }
+}
+
+applySession(getActiveSession())
+
+export function useAuth() {
+  const isAuthenticated = computed(() => Boolean(user.value && token.value))
+
+  async function login(username: string, password: string) {
+    const response = await loginRequest(username.trim(), password.trim())
+
+    const session: AuthSession = {
+      user: response.user,
+      token: response.token,
+      expiresAt: Date.now() + response.expires_in * 1000,
+    }
+
+    applySession(session)
   }
 
   function logout() {
-    user.value = null
-    persistUser(null)
+    applySession(null)
   }
 
-  return { user, login, logout }
+  return { user, token, expiresAt, isAuthenticated, login, logout }
 }

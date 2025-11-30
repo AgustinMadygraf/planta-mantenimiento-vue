@@ -6,13 +6,11 @@
           <div class="card-body p-4">
             <h1 class="h4 mb-3 text-center">Iniciar sesión</h1>
             <div class="text-muted mb-4 small">
-              <p class="text-center mb-2">Usuarios demo disponibles:</p>
-              <ul class="mb-0 ps-3">
-                <li><strong>Superadministrador:</strong> superadmin / superadmin</li>
-                <li><strong>Administrador de área:</strong> admin-area / admin-area</li>
-                <li><strong>Maquinista:</strong> maquinista / maquinista</li>
-                <li><strong>Invitado:</strong> invitado / invitado</li>
-              </ul>
+              <p class="text-center mb-1">
+                Usa tus credenciales reales. Si el backend carga usuarios demo, podrás ingresar con las combinaciones
+                publicadas en la documentación de despliegue.
+              </p>
+              <p class="text-center mb-0">Todas las operaciones se autorizan según el rol y alcance devuelto por el backend.</p>
             </div>
 
             <form class="vstack gap-3" @submit.prevent="onSubmit">

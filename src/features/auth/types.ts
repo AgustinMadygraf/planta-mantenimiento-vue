@@ -8,3 +8,10 @@ export interface AuthUser {
   /** Identificadores de equipos que puede gestionar (solo para maquinistas) */
   equipos?: number[]
 }
+
+export interface AuthSession {
+  user: AuthUser
+  token: string
+  /** Timestamp en milisegundos */
+  expiresAt: number
+}
