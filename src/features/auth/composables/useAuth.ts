@@ -4,6 +4,8 @@ import { login as requestLogin } from '../../../services/api'
 import type { AuthSession } from '../../../services/session'
 import { loadSession, persistSession } from '../../../services/session'
 
+import { devLog } from '../../../utils/devLogger'
+
 const session = ref<AuthSession | null>(loadSession())
 const user = computed<AuthUser | null>(() => session.value?.user ?? null)
 
@@ -12,6 +14,7 @@ export function useAuth() {
     const sanitizedUsername = username.trim()
     const sanitizedPassword = password.trim()
 
+    devLog('useAuth.login called', { sanitizedUsername })
     const authSession = await requestLogin({
       username: sanitizedUsername,
       password: sanitizedPassword,
@@ -19,11 +22,13 @@ export function useAuth() {
 
     session.value = authSession
     persistSession(authSession)
+    devLog('Session persisted', { user: authSession.user })
   }
 
   function logout() {
     session.value = null
     persistSession(null)
+    devLog('User logged out')
   }
 
   return { user, login, logout }

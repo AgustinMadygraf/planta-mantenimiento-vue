@@ -12,6 +12,8 @@ import type { AuthUser } from '../features/auth/types'
 import { getAuthToken } from './session'
 import { logger } from './logger'
 
+import { devLog, devWarn, devError } from '../utils/devLogger'
+
 const baseUrl = import.meta.env.VITE_API_BASE_URL
 
 if (!baseUrl) {
@@ -23,6 +25,7 @@ type RequestOptions = RequestInit & { auth?: boolean; parseResponse?: boolean }
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { auth = true, parseResponse = true, ...requestOptions } = options
   const token = auth ? getAuthToken() : null
+  devLog('API request', { path, options, token })
   const response = await fetch(`${baseUrl}${path}`, {
     headers: {
       'Content-Type': 'application/json',
@@ -32,6 +35,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     ...requestOptions,
   }).catch((error) => {
     logger.error('Error de red', error)
+    devError('Error de red', error)
     throw new Error(
       'No se pudo conectar con el servidor. Verifica tu conexión o que el backend esté disponible.',
     )
@@ -54,8 +58,10 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       }
     } catch (error) {
       logger.warn('No se pudo parsear el cuerpo de error', error)
+      devWarn('No se pudo parsear el cuerpo de error', error)
     }
 
+    devError('API error response', { path, status: response.status, message })
     throw new Error(message)
   }
 
@@ -88,6 +94,7 @@ export async function login({
   username: string
   password: string
 }): Promise<LoginSuccess> {
+  devLog('Login attempt', { username })
   const response = await request<RawLoginResponse>('/auth/login', {
     method: 'POST',
     auth: false,
@@ -97,13 +104,16 @@ export async function login({
   const token = response.token || response.access_token
 
   if (!token) {
+    devError('Login error: No token in response', response)
     throw new Error('La respuesta de autenticación no incluye un token.')
   }
 
   if (!response.user) {
+    devError('Login error: No user in response', response)
     throw new Error('La respuesta de autenticación no incluye la información de usuario.')
   }
 
+  devLog('Login success', { user: response.user })
   return { token, user: response.user }
 }
 
