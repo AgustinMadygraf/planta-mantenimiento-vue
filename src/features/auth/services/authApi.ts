@@ -1,3 +1,7 @@
+/*
+Path: src/features/auth/services/authApi.ts
+*/
+
 import type { AuthUser, UserRole } from '../types'
 import { deriveExpiration } from './session.js'
 import { devError, devLog } from '../../../utils/devLogger.js'
@@ -36,10 +40,16 @@ let loginRequest: RequestFunction | null = null
 async function resolveRequest(): Promise<RequestFunction> {
   if (loginRequest) return loginRequest
 
-  // @ts-ignore - resolved at runtime; mapped to a stub during isolated test builds
-  const module = await import('../../../services/apiClient')
-  loginRequest = module.request
-  return loginRequest
+  // Use stub in development, real API in production
+  if (import.meta.env.MODE === 'development') {
+    const module = await import('../../../stubs/apiClient')
+    loginRequest = module.request
+    return loginRequest
+  } else {
+    const module = await import('../../../services/apiClient')
+    loginRequest = module.request
+    return loginRequest
+  }
 }
 
 export function __setAuthRequest(mockedRequest: RequestFunction) {
@@ -79,6 +89,13 @@ export async function login({
   const user = normalizeUser(payload.user ?? payload.usuario, username)
   const expiresAt = typeof payload.expiresAt === 'number' ? payload.expiresAt : deriveExpiration({ token, expiresInSeconds: payload.expires_in });
   console.log('[authApi.ts] expiresAt final:', expiresAt)
+
+  console.log('[authApi.ts] objeto final de sesión:', {
+    token,
+    refreshToken: payload.refresh_token ?? null,
+    expiresAt,
+    user,
+  });
 
   devLog('Login success', { user })
   return {

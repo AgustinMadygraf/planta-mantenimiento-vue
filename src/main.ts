@@ -15,4 +15,10 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 
+
+// Forzar stub de login en desarrollo
+if (import.meta.env.MODE === 'development') {
+		// Stub usage now handled in authApi.ts
+}
+
 app.mount('#app')
