@@ -8,6 +8,9 @@ import type {
   Sistema,
   SistemaPayload,
 } from '../types/assets'
+import type { AuthUser } from '../features/auth/types'
+import { getAuthToken } from './session'
+import { logger } from './logger'
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL
 
@@ -15,18 +18,20 @@ if (!baseUrl) {
   throw new Error('VITE_API_BASE_URL no está definido. Verifica el archivo .env.')
 }
 
-type RequestOptions = RequestInit & { parseResponse?: boolean }
+type RequestOptions = RequestInit & { auth?: boolean; parseResponse?: boolean }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { parseResponse = true, ...requestOptions } = options
+  const { auth = true, parseResponse = true, ...requestOptions } = options
+  const token = auth ? getAuthToken() : null
   const response = await fetch(`${baseUrl}${path}`, {
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(requestOptions.headers || {}),
     },
     ...requestOptions,
   }).catch((error) => {
-    console.error('Error de red', error)
+    logger.error('Error de red', error)
     throw new Error(
       'No se pudo conectar con el servidor. Verifica tu conexión o que el backend esté disponible.',
     )
@@ -48,7 +53,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         }
       }
     } catch (error) {
-      console.warn('No se pudo parsear el cuerpo de error', error)
+      logger.warn('No se pudo parsear el cuerpo de error', error)
     }
 
     throw new Error(message)
@@ -63,6 +68,43 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   }
 
   return (await response.json()) as T
+}
+
+interface RawLoginResponse {
+  token?: string
+  access_token?: string
+  user?: AuthUser
+}
+
+export interface LoginSuccess {
+  token: string
+  user: AuthUser
+}
+
+export async function login({
+  username,
+  password,
+}: {
+  username: string
+  password: string
+}): Promise<LoginSuccess> {
+  const response = await request<RawLoginResponse>('/auth/login', {
+    method: 'POST',
+    auth: false,
+    body: JSON.stringify({ username, password }),
+  })
+
+  const token = response.token || response.access_token
+
+  if (!token) {
+    throw new Error('La respuesta de autenticación no incluye un token.')
+  }
+
+  if (!response.user) {
+    throw new Error('La respuesta de autenticación no incluye la información de usuario.')
+  }
+
+  return { token, user: response.user }
 }
 
 export function getPlantas(): Promise<Planta[]> {

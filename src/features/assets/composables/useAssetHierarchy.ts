@@ -21,6 +21,7 @@ import type { Area, Equipo, Planta, Sistema } from '../../../types/assets'
 import { syncSelection } from './syncSelection'
 import { useCrudForm } from './useCrudForm'
 import { useFeedback } from './useFeedback'
+import { logger } from '../../../services/logger'
 
 export function useAssetHierarchy() {
   const plantas = ref<Planta[]>([])
@@ -75,7 +76,7 @@ export function useAssetHierarchy() {
       plantas.value = await getPlantas()
       syncSelection(plantas.value, selectedPlanta, selectPlanta, () => clearSelectionFrom('planta'))
     } catch (error) {
-      console.error(error)
+      logger.error(error)
       setFeedback('danger', (error as Error).message)
     } finally {
       loading.plantas = false
@@ -88,7 +89,7 @@ export function useAssetHierarchy() {
       areas.value = await getAreas(plantaId)
       syncSelection(areas.value, selectedArea, selectArea, () => clearSelectionFrom('area'))
     } catch (error) {
-      console.error(error)
+      logger.error(error)
       setFeedback('danger', (error as Error).message)
     } finally {
       loading.areas = false
@@ -101,7 +102,7 @@ export function useAssetHierarchy() {
       equipos.value = await getEquipos(areaId)
       syncSelection(equipos.value, selectedEquipo, selectEquipo, () => clearSelectionFrom('equipo'))
     } catch (error) {
-      console.error(error)
+      logger.error(error)
       setFeedback('danger', (error as Error).message)
     } finally {
       loading.equipos = false
@@ -114,7 +115,7 @@ export function useAssetHierarchy() {
       sistemas.value = await getSistemas(equipoId)
       syncSelection(sistemas.value, selectedSistema, selectSistema, () => clearSelectionFrom('sistema'))
     } catch (error) {
-      console.error(error)
+      logger.error(error)
       setFeedback('danger', (error as Error).message)
     } finally {
       loading.sistemas = false
@@ -167,7 +168,7 @@ export function useAssetHierarchy() {
       plantaForm.reset()
       await loadPlantas()
     } catch (error) {
-      console.error(error)
+      logger.error(error)
       setFeedback('danger', (error as Error).message)
     } finally {
       saving.planta = false
@@ -198,7 +199,7 @@ export function useAssetHierarchy() {
       areaForm.reset()
       await loadAreas(selectedPlanta.value.id)
     } catch (error) {
-      console.error(error)
+      logger.error(error)
       setFeedback('danger', (error as Error).message)
     } finally {
       saving.area = false
@@ -229,7 +230,7 @@ export function useAssetHierarchy() {
       equipoForm.reset()
       await loadEquipos(selectedArea.value.id)
     } catch (error) {
-      console.error(error)
+      logger.error(error)
       setFeedback('danger', (error as Error).message)
     } finally {
       saving.equipo = false
@@ -260,7 +261,7 @@ export function useAssetHierarchy() {
       sistemaForm.reset()
       await loadSistemas(selectedEquipo.value.id)
     } catch (error) {
-      console.error(error)
+      logger.error(error)
       setFeedback('danger', (error as Error).message)
     } finally {
       saving.sistema = false
@@ -281,7 +282,7 @@ export function useAssetHierarchy() {
       }
       await loadPlantas()
     } catch (error) {
-      console.error(error)
+      logger.error(error)
       setFeedback('danger', (error as Error).message)
     } finally {
       removing.planta = false
@@ -304,7 +305,7 @@ export function useAssetHierarchy() {
         await loadAreas(selectedPlanta.value.id)
       }
     } catch (error) {
-      console.error(error)
+      logger.error(error)
       setFeedback('danger', (error as Error).message)
     } finally {
       removing.area = false
@@ -327,7 +328,7 @@ export function useAssetHierarchy() {
         await loadEquipos(selectedArea.value.id)
       }
     } catch (error) {
-      console.error(error)
+      logger.error(error)
       setFeedback('danger', (error as Error).message)
     } finally {
       removing.equipo = false
@@ -350,7 +351,7 @@ export function useAssetHierarchy() {
         await loadSistemas(selectedEquipo.value.id)
       }
     } catch (error) {
-      console.error(error)
+      logger.error(error)
       setFeedback('danger', (error as Error).message)
     } finally {
       removing.sistema = false

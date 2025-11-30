@@ -1,17 +1,14 @@
 # Estado de tareas
 
 ## Tareas implementadas
-- **Modelo de roles ampliado con alcances**: se añadieron los roles `superadministrador`, `administrador`, `maquinista` e `invitado`, incluyendo campos opcionales de áreas y equipos para acotar permisos. 【F:src/features/auth/types.ts†L1-L9】
-- **Autenticación demo robusta**: se definieron credenciales de ejemplo para cada rol, con carga segura desde `localStorage` (limpieza ante JSON corrupto) y mensajes de error que enumeran todas las combinaciones válidas. 【F:src/features/auth/composables/useAuth.ts†L11-L70】
-- **Ayuda de login actualizada**: la tarjeta de acceso muestra todas las credenciales demo disponibles para orientar a cada rol. 【F:src/features/auth/components/LoginCard.vue†L9-L16】
-- **Controles de UI según rol y alcance**: la página de activos limita creación/edición/eliminación según la jerarquía (planta/área/equipo) y muestra avisos de feedback contextual cuando la acción no está permitida. 【F:src/features/assets/components/AssetsPage.vue†L1-L196】
-- **Feedback reutilizable**: la lógica de mensajes ahora admite estados `warning`, permitiendo alertar restricciones de permisos sin marcar error crítico. 【F:src/features/assets/composables/useFeedback.ts†L1-L16】
+- **Inicio de sesión persistente con token**: al autenticarse se guarda la sesión (token y usuario) en `localStorage`, y cada petición API adjunta automáticamente `Authorization: Bearer` usando el token almacenado. 【F:src/features/auth/composables/useAuth.ts†L1-L25】【F:src/services/api.ts†L20-L85】【F:src/services/session.ts†L1-L43】
+- **Gestor de logs solo para desarrollo**: se añadió un servicio `logger` que activa `log/info/warn/error` en modo dev y los desactiva en build de producción, usado por servicios de red y almacenamiento para depurar sin contaminar la consola en producción. 【F:src/services/logger.ts†L1-L14】【F:src/services/api.ts†L23-L41】【F:src/services/session.ts†L3-L22】
 
 ## Tareas pendientes o incompletas
-- **Pruebas automatizadas ausentes**: aún no se han definido o ejecutado suites de pruebas (unitarias o e2e) que cubran autenticación y reglas de permisos.
-- **Revisión funcional**: falta validar manualmente en la UI que cada rol solo ve y puede actuar sobre el alcance correcto (planta/área/equipo) con los nuevos avisos de advertencia.
+- **Validación en navegador del header Authorization**: falta confirmar con la pestaña Network que `GET /api/plantas` envía el header `Authorization` después de login y que llega al backend (o revisar proxy si se pierde).
+- **Pruebas automatizadas**: no se han agregado pruebas unitarias o e2e que cubran autenticación, persistencia de sesión y adjunción del token en llamadas protegidas.
 
 ## Próximos pasos sugeridos
-1. **Añadir pruebas**: crear pruebas unitarias para los composables de autenticación y autorización; incluir pruebas de integración en la UI para los flujos de creación/edición/borrado según rol.
-2. **Validación manual guiada**: ejecutar la app con cada usuario demo y confirmar que los controles y feedback se comportan según la matriz de permisos.
-3. **Monitoreo continuo**: integrar el comando de build en CI para garantizar que el tipado y la compilación se mantengan verdes tras futuros cambios.
+1. **Reproducir en navegador**: iniciar sesión, abrir Network y verificar que la request a `/api/plantas` contiene `Authorization: Bearer <token>`; si no aparece, revisar timing del disparo de la llamada y la disponibilidad del token.
+2. **Probar contra backend directamente**: usar `curl` o Postman con el token emitido por login desde la misma máquina del frontend para confirmar que el backend acepta la petición con header.
+3. **Agregar pruebas**: incorporar tests que aseguren la lectura de sesión desde `localStorage` y la inclusión del token en las peticiones autenticadas.
