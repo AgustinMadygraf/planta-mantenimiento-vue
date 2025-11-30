@@ -4,6 +4,7 @@ import {
   type NavigationGuardNext,
   type RouteLocationNormalized,
 } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { isSessionExpired } from '../features/auth/services/session'
 import { useSessionStore } from '../stores/session'
 
@@ -27,21 +28,20 @@ const router = createRouter({
 
 router.beforeEach((to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) => {
   const sessionStore = useSessionStore()
+  const { session, isAuthenticated } = storeToRefs(sessionStore)
 
-  if (sessionStore.session && isSessionExpired(sessionStore.session)) {
+  if (session.value && isSessionExpired(session.value)) {
     sessionStore.clearSession()
   }
 
-  const isAuthenticated = sessionStore.isAuthenticated.value
-
   const requiresAuth = Boolean(to.meta && (to.meta as any).requiresAuth)
 
-  if (requiresAuth && !isAuthenticated) {
+  if (requiresAuth && !isAuthenticated.value) {
     next({ name: 'login', query: { redirect: to.fullPath || to.path || '/' } })
     return
   }
 
-  if (to.name === 'login' && isAuthenticated) {
+  if (to.name === 'login' && isAuthenticated.value) {
     next({ name: 'assets' })
     return
   }
