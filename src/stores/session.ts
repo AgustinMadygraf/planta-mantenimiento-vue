@@ -13,7 +13,7 @@ import {
 
 export const useSessionStore = defineStore('session', () => {
   const session = ref<AuthSession | null>(loadSession())
-  // console.log('session.ts: store inicializado, session:', session.value)
+  console.log('[session.ts] Store inicializado, sesión cargada:', session.value)
 
   const isAuthenticated = computed(() => Boolean(session.value))
   const isExpired = computed(() => isSessionExpired(session.value))

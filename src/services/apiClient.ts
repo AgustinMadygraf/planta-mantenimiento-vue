@@ -22,7 +22,11 @@ type RequestOptions = RequestInit & { auth?: boolean; parseResponse?: boolean }
 
 function resolveSessionStore() {
   try {
-    if (!getActivePinia()) return null
+    if (!getActivePinia()) {
+      const session = loadSession()
+      console.log('[apiClient.ts] resolveSessionStore: sesión cargada desde localStorage', session)
+      return null
+    }
     return useSessionStore()
   } catch (error) {
     console.warn('No se pudo acceder a la store de sesión; se usará el respaldo local.', error)
@@ -32,10 +36,14 @@ function resolveSessionStore() {
 
 async function getAuthorizationToken(): Promise<string | null> {
   const sessionStore = resolveSessionStore()
-  const session = sessionStore ? sessionStore.session.value : loadSession()
+  let session: AuthSession | null = null
+  if (sessionStore && sessionStore.session && typeof sessionStore.session.value !== 'undefined') {
+    session = sessionStore.session.value
+  } else {
+    session = loadSession()
+  }
+  console.log('[apiClient.ts] getAuthorizationToken: sesión actual', session)
   if (!session) return null
-
-  // console.log('[apiClient.ts] getAuthorizationToken: session.refreshToken =', session.refreshToken)
 
   if (!isSessionExpired(session)) {
     console.log('[apiClient.ts] getAuthorizationToken: retornando token', session.token, 'session:', session)
@@ -94,7 +102,6 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     },
     ...requestOptions,
   }).catch((error) => {
-    console.error('Error de red', error)
     console.error('Error de red', error)
     throw new Error(
       'No se pudo conectar con el servidor. Verifica tu conexión o que el backend esté disponible.',
