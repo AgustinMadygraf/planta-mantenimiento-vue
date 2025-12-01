@@ -83,33 +83,33 @@ export async function login({
 
   console.log('[authApi.ts] expiresAt en payload:', payload.expiresAt);
 
-  if (!token) {
-    console.error('Login error: No token in response', response)
-    throw new Error('La respuesta de autenticación no incluye un token.')
+  // Validación: rechazar demo-token y tokens no JWT
+  const isJwt = typeof token === 'string' && token.split('.').length === 3
+  if (!token || token === 'demo-token' || !isJwt) {
+    console.error('Login error: Token inválido o de desarrollo', token)
+    throw new Error('El backend respondió con un token inválido. Por favor, inicia sesión con credenciales reales.')
   }
 
-    const user = normalizeUser(payload.user ?? payload.usuario, username)
-    const expiresAt = typeof payload.expiresAt === 'number' ? payload.expiresAt : deriveExpiration({ token, expiresInSeconds: payload.expires_in });
-    // Mapeo robusto: si existe 'refresh_token' en la respuesta, úsalo; si no, null
-    // Refuerzo: si existe 'refresh_token' en payload, úsalo; si no, null
-    const refreshToken = typeof payload.refresh_token === 'string'
-      ? payload.refresh_token
-      : (payload.refresh_token ?? null);
-    console.log('[authApi.ts] refresh_token recibido:', payload.refresh_token);
-    console.log('[authApi.ts] objeto final de sesión:', {
-      token,
-      refreshToken,
-      expiresAt,
-      user,
-    });
+  const user = normalizeUser(payload.user ?? payload.usuario, username)
+  const expiresAt = typeof payload.expiresAt === 'number' ? payload.expiresAt : deriveExpiration({ token, expiresInSeconds: payload.expires_in });
+  const refreshToken = typeof payload.refresh_token === 'string'
+    ? payload.refresh_token
+    : (payload.refresh_token ?? null);
+  console.log('[authApi.ts] refresh_token recibido:', payload.refresh_token);
+  console.log('[authApi.ts] objeto final de sesión:', {
+    token,
+    refreshToken,
+    expiresAt,
+    user,
+  });
 
-    console.log('Login success', { user })
-    return {
-      token,
-      refreshToken,
-      expiresAt,
-      user,
-    }
+  console.log('Login success', { user })
+  return {
+    token,
+    refreshToken,
+    expiresAt,
+    user,
+  }
 }
 
 function normalizeUser(rawUser: unknown, username: string): AuthUser {
