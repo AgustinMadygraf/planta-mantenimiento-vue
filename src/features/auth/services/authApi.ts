@@ -39,19 +39,11 @@ let loginRequest: RequestFunction | null = null
 async function resolveRequest(): Promise<RequestFunction> {
   if (loginRequest) return loginRequest
 
-  // Use stub in development, real API in production
-  console.log('[authApi.ts] resolveRequest: import.meta.env.MODE =', import.meta.env.MODE)
-  if (import.meta.env.MODE === 'development') {
-    const module = await import('../../../stubs/apiClient.stub')
-    console.log('[authApi.ts] resolveRequest: usando stub de apiClient', module)
-    loginRequest = module.request
-    return loginRequest
-  } else {
-    const module = await import('../../../services/apiClient')
-    console.log('[authApi.ts] resolveRequest: usando apiClient real', module)
-    loginRequest = module.request
-    return loginRequest
-  }
+  // Forzar uso de la API real siempre
+  const module = await import('../../../services/apiClient')
+  console.log('[authApi.ts] resolveRequest: usando apiClient real', module)
+  loginRequest = module.request
+  return loginRequest
 }
 
 export function __setAuthRequest(mockedRequest: RequestFunction) {
@@ -83,9 +75,8 @@ export async function login({
 
   console.log('[authApi.ts] expiresAt en payload:', payload.expiresAt);
 
-  // Validación: rechazar demo-token y tokens no JWT
-  const isJwt = typeof token === 'string' && token.split('.').length === 3
-  if (!token || token === 'demo-token' || !isJwt) {
+  // Validación: rechazar solo demo-token
+  if (!token || token === 'demo-token') {
     console.error('Login error: Token inválido o de desarrollo', token)
     throw new Error('El backend respondió con un token inválido. Por favor, inicia sesión con credenciales reales.')
   }

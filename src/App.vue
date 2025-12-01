@@ -1,22 +1,23 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { watch, computed } from 'vue'
 import { RouterView, useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { useAuth } from './features/auth/composables/useAuth'
-import { useSessionStore } from './stores/session'
 import NotificationToasts from './components/notifications/NotificationToasts.vue'
+import { useCustomAuth } from './features/auth/composables/useCustomAuth'
 
 const router = useRouter()
-const { logout } = useAuth()
-const sessionStore = useSessionStore()
-const { session } = storeToRefs(sessionStore)
-
-const user = computed(() => session.value?.user ?? null)
+const { logout, user, isExpired } = useCustomAuth()
 
 function handleLogout() {
   logout()
   router.push({ name: 'login' })
 }
+
+watch(isExpired, (expired) => {
+  if (expired) {
+    logout()
+    router.push({ name: 'login' })
+  }
+})
 </script>
 
 <template>
