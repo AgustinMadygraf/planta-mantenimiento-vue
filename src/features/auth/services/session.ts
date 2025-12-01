@@ -20,15 +20,15 @@ export function loadSession(): NullableAuthSession {
   if (typeof window === 'undefined') return null
 
   const stored = window.localStorage.getItem(STORAGE_KEY)
-  console.log('loadSession: valor en localStorage', stored)
+  // console.log('loadSession: valor en localStorage', stored)
   if (!stored) return null
 
   try {
     const parsed = JSON.parse(stored)
-    console.log('[session.ts] loadSession: sesión recuperada:', parsed)
-    console.log('loadSession: sesión parseada', parsed)
+    // console.log('[session.ts] loadSession: sesión recuperada:', parsed)
+    // console.log('loadSession: sesión parseada', parsed)
     if (isValidSession(parsed)) {
-      console.log('loadSession: sesión válida', parsed)
+      // console.log('loadSession: sesión válida', parsed)
       return parsed
     } else {
       console.warn('loadSession: sesión inválida', parsed)
@@ -44,7 +44,10 @@ export function loadSession(): NullableAuthSession {
 export function persistSession(session: NullableAuthSession) {
   if (typeof window === 'undefined') return
 
-  console.log('[session.ts] persistSession:', session);
+  // console.log('[session.ts] persistSession:', session);
+  // if (session) {
+  //   console.log('[session.ts] persistSession: refreshToken =', session.refreshToken);
+  // }
 
   if (!session) {
     console.log('persistSession: limpiando sesión en localStorage')
@@ -52,7 +55,7 @@ export function persistSession(session: NullableAuthSession) {
     return
   }
 
-  console.log('persistSession: guardando sesión en localStorage', session)
+  // console.log('persistSession: guardando sesión en localStorage', session)
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
 }
 
@@ -69,7 +72,7 @@ export function isSessionExpired(session: AuthSession | null, clockSkewMs = 30_0
   const now = Date.now()
   const expires = session.expiresAt
   const expired = now + clockSkewMs >= expires
-  console.log('[isSessionExpired] now:', now, 'expiresAt:', expires, 'clockSkewMs:', clockSkewMs, 'expired:', expired)
+  // console.log('[isSessionExpired] now:', now, 'expiresAt:', expires, 'clockSkewMs:', clockSkewMs, 'expired:', expired)
   return expired
 }
 

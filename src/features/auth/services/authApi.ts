@@ -90,8 +90,12 @@ export async function login({
 
     const user = normalizeUser(payload.user ?? payload.usuario, username)
     const expiresAt = typeof payload.expiresAt === 'number' ? payload.expiresAt : deriveExpiration({ token, expiresInSeconds: payload.expires_in });
-    const refreshToken = payload.refresh_token ?? null;
-    console.log('[authApi.ts] refreshToken en payload:', payload.refresh_token);
+    // Mapeo robusto: si existe 'refresh_token' en la respuesta, úsalo; si no, null
+    // Refuerzo: si existe 'refresh_token' en payload, úsalo; si no, null
+    const refreshToken = typeof payload.refresh_token === 'string'
+      ? payload.refresh_token
+      : (payload.refresh_token ?? null);
+    console.log('[authApi.ts] refresh_token recibido:', payload.refresh_token);
     console.log('[authApi.ts] objeto final de sesión:', {
       token,
       refreshToken,

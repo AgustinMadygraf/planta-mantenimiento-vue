@@ -8,7 +8,6 @@ const sessionStore = useSessionStore()
 const { session } = storeToRefs(sessionStore)
 
 const user = computed(() => session.value?.user ?? null)
-console.log('AssetsView.vue: user:', user.value)
 
 const roleNotice = computed(() => {
   if (!user.value) return ''
