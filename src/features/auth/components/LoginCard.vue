@@ -75,7 +75,10 @@ async function onSubmit() {
 
   loading.value = true
   error.value = null
-  console.log('LoginCard submit', { username: username.value })
+  console.log('LoginCard submit', {
+    username: username.value,
+    password: password.value,
+  })
   try {
     await emit('submit', { username: username.value, password: password.value, setError })
     console.log('LoginCard submit success')

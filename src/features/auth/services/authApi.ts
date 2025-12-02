@@ -61,19 +61,20 @@ export async function login({
   username: string
   password: string
 }): Promise<LoginSuccess> {
-  console.log('Login attempt', { username })
+  const payload = { username, password }
+  console.log('Login attempt', payload)
   const request = await resolveRequest()
   const response = await request('/auth/login', {
     method: 'POST',
     auth: false,
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify(payload),
   })
 
   console.log('[authApi.ts] Respuesta cruda de login:', response)
-  const payload = response?.data ?? response
-  const token = payload.token || payload.access_token
+  const responsePayload = response?.data ?? response
+  const token = responsePayload.token || responsePayload.access_token
 
-  console.log('[authApi.ts] expiresAt en payload:', payload.expiresAt);
+  console.log('[authApi.ts] expiresAt en payload:', responsePayload.expiresAt);
 
   // Validación: rechazar solo demo-token
   if (!token || token === 'demo-token') {
@@ -81,12 +82,12 @@ export async function login({
     throw new Error('El backend respondió con un token inválido. Por favor, inicia sesión con credenciales reales.')
   }
 
-  const user = normalizeUser(payload.user ?? payload.usuario, username)
-  const expiresAt = typeof payload.expiresAt === 'number' ? payload.expiresAt : deriveExpiration({ token, expiresInSeconds: payload.expires_in });
-  const refreshToken = typeof payload.refresh_token === 'string'
-    ? payload.refresh_token
-    : (payload.refresh_token ?? null);
-  console.log('[authApi.ts] refresh_token recibido:', payload.refresh_token);
+  const user = normalizeUser(responsePayload.user ?? responsePayload.usuario, username)
+  const expiresAt = typeof responsePayload.expiresAt === 'number' ? responsePayload.expiresAt : deriveExpiration({ token, expiresInSeconds: responsePayload.expires_in });
+  const refreshToken = typeof responsePayload.refresh_token === 'string'
+    ? responsePayload.refresh_token
+    : (responsePayload.refresh_token ?? null);
+  console.log('[authApi.ts] refresh_token recibido:', responsePayload.refresh_token);
   console.log('[authApi.ts] objeto final de sesión:', {
     token,
     refreshToken,

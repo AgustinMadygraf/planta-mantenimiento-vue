@@ -17,7 +17,10 @@ export function useAuth() {
     const sanitizedUsername = username.trim()
     const sanitizedPassword = password.trim()
 
-    console.log('useAuth.login called', { sanitizedUsername })
+    console.log('useAuth.login called', {
+      username: sanitizedUsername,
+      password: sanitizedPassword,
+    })
     let authSession
     try {
       authSession = await requestLogin({
