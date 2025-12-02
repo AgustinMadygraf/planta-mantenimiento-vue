@@ -26,6 +26,7 @@ export function useAuth() {
       })
       console.log('useAuth.login: authSession recibido', authSession)
     } catch (error) {
+      sessionStore.clearSession()
       console.log('useAuth.login: error en requestLogin', error)
       throw error
     }

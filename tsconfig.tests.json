@@ -12,14 +12,16 @@
       "../../../services/apiClient": ["tests/stubs/apiClient"],
       "../services/apiClient": ["tests/stubs/apiClient"],
       "src/services/apiClient": ["tests/stubs/apiClient"],
+      "@/*": ["src/*"],
+      "@/services/apiClient": ["tests/stubs/apiClient"],
       "./src/services/apiClient": ["tests/stubs/apiClient"]
     },
     "esModuleInterop": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-    "types": [],
+    "types": ["node"],
     "lib": ["ES2020", "DOM"],
-    "noResolve": true,
+    "noResolve": false,
     "noEmit": false,
     "strict": false
   },

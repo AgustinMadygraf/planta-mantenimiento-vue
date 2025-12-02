@@ -1,4 +1,4 @@
-/*
+﻿/*
 Path: src/services/apiClient.ts
 */
 
@@ -12,10 +12,19 @@ import {
 } from '../features/auth/services/session'
 import { useSessionStore } from '../stores/session'
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL
+// Resolve base URL from Vite env, Node env (tests), or a global fallback
+const importMetaEnv = typeof import.meta !== 'undefined' ? (import.meta as any).env : undefined
+const baseUrl =
+  importMetaEnv?.VITE_API_BASE_URL ??
+  (typeof process !== 'undefined' ? (process as any)?.env?.VITE_API_BASE_URL : undefined) ??
+  (typeof window !== 'undefined' ? (window as any)?.VITE_API_BASE_URL : undefined) ??
+  (typeof window !== 'undefined' ? `${window.location.origin}/api` : undefined)
 
 if (!baseUrl) {
-  throw new Error('VITE_API_BASE_URL no está definido. Verifica el archivo .env.')
+  console.error('[apiClient.ts] VITE_API_BASE_URL no esta disponible. Revisa .env y reinicia el dev server.', {
+    importMetaEnv,
+  })
+  throw new Error('VITE_API_BASE_URL no esta definido. Verifica el archivo .env.')
 }
 
 type RequestOptions = RequestInit & { auth?: boolean; parseResponse?: boolean }
@@ -24,12 +33,12 @@ function resolveSessionStore() {
   try {
     if (!getActivePinia()) {
       const session = loadSession()
-      console.log('[apiClient.ts] resolveSessionStore: sesión cargada desde localStorage', session)
+      console.log('[apiClient.ts] resolveSessionStore: sesiÃ³n cargada desde localStorage', session)
       return null
     }
     return useSessionStore()
   } catch (error) {
-    console.warn('No se pudo acceder a la store de sesión; se usará el respaldo local.', error)
+    console.warn('No se pudo acceder a la store de sesiÃ³n; se usarÃ¡ el respaldo local.', error)
     return null
   }
 }
@@ -37,12 +46,13 @@ function resolveSessionStore() {
 async function getAuthorizationToken(): Promise<string | null> {
   const sessionStore = resolveSessionStore()
   let session: AuthSession | null = null
-  if (sessionStore && sessionStore.session && typeof sessionStore.session.value !== 'undefined') {
-    session = sessionStore.session.value
+  if (sessionStore && (sessionStore as any).session !== undefined) {
+    const current = (sessionStore as any).session
+    session = current?.value ?? current
   } else {
     session = loadSession()
   }
-  console.log('[apiClient.ts] getAuthorizationToken: sesión actual', session)
+  console.log('[apiClient.ts] getAuthorizationToken: sesiÃ³n actual', session)
   if (!session) return null
 
   if (!isSessionExpired(session)) {
@@ -51,7 +61,7 @@ async function getAuthorizationToken(): Promise<string | null> {
   }
 
   if (!session.refreshToken) {
-    console.log('[apiClient.ts] getAuthorizationToken: refreshToken es null, limpiando sesión')
+    console.log('[apiClient.ts] getAuthorizationToken: refreshToken es null, limpiando sesiÃ³n')
     if (sessionStore) {
       sessionStore.clearSession()
     } else {
@@ -74,10 +84,10 @@ async function getAuthorizationToken(): Promise<string | null> {
     } else {
       persistSession(null)
     }
-    console.error('No se pudo refrescar la sesión', error)
+    console.error('No se pudo refrescar la sesiÃ³n', error)
     throw error instanceof Error
       ? error
-      : new Error('No se pudo refrescar la sesión. Inicia sesión nuevamente.')
+      : new Error('No se pudo refrescar la sesiÃ³n. Inicia sesiÃ³n nuevamente.')
   }
 }
 
@@ -85,13 +95,13 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   const { auth = true, parseResponse = true, ...requestOptions } = options
   const token = auth ? await getAuthorizationToken() : null
   if (auth && !token) {
-    console.error('[apiClient.ts] Sesión expirada o sin token.', {
+    console.error('[apiClient.ts] SesiÃ³n expirada o sin token.', {
       session: (typeof window !== 'undefined' ? window.localStorage.getItem('planta-mantenimiento.auth') : null),
       token,
       path,
       options
     })
-    throw new Error('La sesión ha expirado. Inicia sesión nuevamente.')
+    throw new Error('La sesiÃ³n ha expirado. Inicia sesiÃ³n nuevamente.')
   }
 
   const response = await fetch(`${baseUrl}${path}`, {
@@ -104,7 +114,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   }).catch((error) => {
     console.error('Error de red', error)
     throw new Error(
-      'No se pudo conectar con el servidor. Verifica tu conexión o que el backend esté disponible.',
+      'No se pudo conectar con el servidor. Verifica tu conexiÃ³n o que el backend estÃ© disponible.',
     )
   })
 
@@ -137,7 +147,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   }
 
   if (!isJson) {
-    throw new Error('La respuesta del servidor no tiene un formato JSON válido.')
+    throw new Error('La respuesta del servidor no tiene un formato JSON vÃ¡lido.')
   }
 
   return (await response.json()) as T
@@ -175,3 +185,6 @@ async function refreshAccessToken(currentSession: AuthSession): Promise<AuthSess
 }
 
 export type { RequestOptions }
+
+
+

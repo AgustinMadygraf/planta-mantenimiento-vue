@@ -40,7 +40,7 @@ async function resolveRequest(): Promise<RequestFunction> {
   if (loginRequest) return loginRequest
 
   // Forzar uso de la API real siempre
-  const module = await import('../../../services/apiClient')
+  const module = await import('@/services/apiClient')
   console.log('[authApi.ts] resolveRequest: usando apiClient real', module)
   loginRequest = module.request
   return loginRequest
